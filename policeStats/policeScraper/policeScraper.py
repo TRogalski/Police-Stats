@@ -1,5 +1,5 @@
 import datetime
-from urllib.request import urlopen
+import requests
 from urllib.error import HTTPError
 from bs4 import BeautifulSoup
 import numpy as np
@@ -25,22 +25,22 @@ class PoliceScraper():
         daily_stats = {}
         
         try:
-            html = urlopen('http://malopolska.policja.gov.pl/pl/content/' + self.formatDate(date))
-            bs_page = BeautifulSoup(html);
-            bs_daily_stats = bs_page.find("article", {"class" : "node-statystyka-dnia"}).findAll("dd")
+            response = requests.get('http://malopolska.policja.gov.pl/pl/content/' + self.formatDate(date))
+            html_soup = BeautifulSoup(response.content, 'html.parser');
+            bs_daily_stats = html_soup.find("article", {"class" : "node-statystyka-dnia"}).findAll("dd")
             
             for element in bs_daily_stats:
                 daily_stats[element['title']] = int(element.div.get_text())
             return daily_stats
-        except HTTPError as e:
+        except (HTTPError, AttributeError) as e:
             #Errors should be logged somehow
             print(e)
-            return {'Zatrzymani na gorącym uczynku': np.nan,
-                    'Zatrzymani poszukiwani': np.nan, 
-                    'Zatrzymani nietrzeźwi kierujący': np.nan, 
-                    'Wypadki drogowe': np.nan, 
-                    'Zabici w wypadkach drogowych': np.nan, 
-                    'Ranni w wypadkach drogowych': np.nan}
+            return {'Zatrzymani na gorącym uczynku': None,
+                    'Zatrzymani poszukiwani': None, 
+                    'Zatrzymani nietrzeźwi kierujący': None, 
+                    'Wypadki drogowe': None, 
+                    'Zabici w wypadkach drogowych': None, 
+                    'Ranni w wypadkach drogowych': None}
 
     def scrap_period(self, start_dt, end_dt):
         period_stats = {}
