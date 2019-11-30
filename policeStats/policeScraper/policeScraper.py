@@ -5,7 +5,8 @@ from bs4 import BeautifulSoup
 import numpy as np
 
 class PoliceScraper():
-    def getDates(self, start, end):
+
+    def get_dates(self, start, end):
         
         start_dt = datetime.datetime.strptime(start, '%d-%m-%Y')
         end_dt = datetime.datetime.strptime(end, '%d-%m-%Y')
@@ -18,14 +19,16 @@ class PoliceScraper():
             start_dt += step   
         return series;
         
-    def formatDate(self, date):
+        
+    def format_date_scraper(self, date):
         return date.strftime('%d%m%Y')
+    
     
     def scrap_day(self, date):
         daily_stats = {}
         
         try:
-            response = requests.get('http://malopolska.policja.gov.pl/pl/content/' + self.formatDate(date))
+            response = requests.get('http://malopolska.policja.gov.pl/pl/content/' + self.format_date_scraper(date))
             html_soup = BeautifulSoup(response.content, 'html.parser');
             bs_daily_stats = html_soup.find("article", {"class" : "node-statystyka-dnia"}).findAll("dd")
             
@@ -42,10 +45,11 @@ class PoliceScraper():
                     'Zabici w wypadkach drogowych': None, 
                     'Ranni w wypadkach drogowych': None}
 
+
     def scrap_period(self, start_dt, end_dt):
         period_stats = {}
-        dates = self.getDates(start_dt, end_dt)
+        dates = self.get_dates(start_dt, end_dt)
         
         for date in dates:
-            period_stats[date.strftime('%d-%m-%Y')] = self.scrap_day(date)
+            period_stats[date.strftime('%Y-%m-%d')] = self.scrap_day(date)
         return period_stats
