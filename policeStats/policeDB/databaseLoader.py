@@ -22,6 +22,7 @@ class DatabaseLoader():
         try:
             cur.execute("USE police_stats")
             self.create_serials_table(cur)
+            self.remove_days_already_present(scrap_dict, cur)
             for key in scrap_dict:
                 query = "INSERT INTO stats(DAY, ZNGU, ZP, ZNK, WD, ZWD, RWD) VALUES(%s, %s, %s, %s, %s, %s, %s)"
                 cur.execute(query, (key, scrap_dict[key]['Zatrzymani na gorącym uczynku'],
@@ -35,6 +36,11 @@ class DatabaseLoader():
             db_conn.close()
             cur.close()
     
+    
+    def remove_days_already_present(self, scrap_dict, db_cursor):
+        #print(",".join(["'%s'" % key for key in scrap_dict.keys()]))
+        db_cursor.execute("DELETE FROM stats WHERE DAY IN (%s)" % ",".join(["'%s'" % key for key in scrap_dict.keys()]))
+        
     
     def get_connection(self):
         return pymysql.connect(
